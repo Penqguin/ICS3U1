@@ -8,8 +8,7 @@ if a > b and a > c:
     elif c > b:
         yongest = b
         middle = c
-
-if b > a and b > c:
+elif b > a and b > c:
     eldest = b
     if a > c:
         yongest = c
@@ -17,8 +16,7 @@ if b > a and b > c:
     elif c > a:
         yongest = a
         middle = c
-
-if c > a and c > b:
+elif c > a and c > b:
     eldest = c
     if b > a:
         yongest = a
