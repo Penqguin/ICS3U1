@@ -1,4 +1,4 @@
-a, b, c = map(int, input("Enter 3 ages? ").split())
+a, b, c =  int(input("Enter 3 ages? ")), int(input("Enter 3 ages? ")), int(input("Enter 3 ages? "))
 eldest, middle, yongest = 0, 0, 0
 if a >= b and a >= c:
     eldest = a
