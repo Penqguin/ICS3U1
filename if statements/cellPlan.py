@@ -1,13 +1,13 @@
 d, w = int(input("day minutes: ")), int(input("weekend minutes: "))
 
 if d <= 500:
-    planA = 50 / 30 
+    planA = 50
     print("Daily cost of plan A ", round(planA, 2))
 else:
-    planA = 65 / 30
+    planA = 65
     print("Daily cost of plan A ", round(planA, 2))
 
-planB = (d * 0.1) + (w * 0.05)
+planB = ((d * 0.1) * 30) + ((w * 0.05) * 30)
 print("Daily cost of plan B", round(planB, 2))
 
 if planA > planB:
