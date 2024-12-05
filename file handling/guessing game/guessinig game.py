@@ -1,7 +1,7 @@
 import random
 
 def game():
-  ranNum = random.randint(1, 5)
+  ranNum = random.randint(1, 50)
   guess = int(input("Enter your guess: "))
   count = 0
 
