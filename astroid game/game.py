@@ -20,15 +20,32 @@ class spaceship():
     self.x_pos += 1
     return self.x_pos
 
-def check_collision(player):
+class asteroid():
+  def __init__(self, x_pos, y_pos):
+    self.health = 1
+    self.x_pos = x_pos
+    self.y_pos = y_pos
 
-def update_score():
+  def collision(self):
+    self.health = 0
+    return self.health
 
-def save_high_score():
+def check_collision(player, asteroids):
+  for asteroid in asteroids:
+    if player.x_pos == asteroid.x_pos:
+      player.collision()
+      asteroid.collision()
+      print(f"You've hit an asteroid! \nlives remaining {player.health}")
+
+# def update_score():
+
+# def save_high_score():
 
 def dfs():
 
+
 def display_lanes(player):
+
 
 def main():
   a = input("Press any button to start: ")
@@ -38,4 +55,5 @@ def main():
   while a == a:
     display_lanes(player)
     check_collision(player)
+
 main()
