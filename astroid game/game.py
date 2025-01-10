@@ -1,5 +1,5 @@
-import time
-import random
+import time, random
+from prettytable import PrettyTable
 
 class spaceship():
   def __init__(self, name = 'guest'):
