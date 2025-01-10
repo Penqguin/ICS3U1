@@ -40,14 +40,14 @@ def check_collision(player, asteroids):
       asteroid.collision()
       print(f"You've hit an asteroid! \nlives remaining {player.health}")
 
-# def update_score():
+def update_score():
 
-# def save_high_score():
+def save_high_score():
 
 def dfs():
   # generates new lines of asteroids and makes sure there is always an avalible path
   # path might not always be accessable to player to make game harder
-
+  
 def start():
   path = []
   current_pos = 0
@@ -88,7 +88,7 @@ def slow_print(*args):
     print('')
 
 def main():
-  slow_print("Press any button to start... ")
+  slow_print("\033[32mPress enter to start... \033[0m")
   a = input('')
 
   player = spaceship(input("Enter a username"))
