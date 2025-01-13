@@ -77,16 +77,28 @@ def dfs():
 
 
 def display_lanes(player, asteroids):
-  grid = [[" " for _ in range(5)] for _ in range(8)]
-  grid[7][player.x_pos] = "^"  # Player's position
-  for asteroid in asteroids:
-    if 0 <= asteroid.y_pos < 8:
-      grid[asteroid.y_pos][asteroid.x_pos] = "*"
+    # Create an empty 8x5 grid
+    grid = [[" " for _ in range(5)] for _ in range(8)]
 
-  print("\nCurrent Grid:")
-  for row in grid:
-    print("|" + "".join(row) + "|")
-  print(f"Player: {player.name}, Score: {player.score}, Lives: {player.health}")
+    # Place asteroids in the grid
+    for asteroid in asteroids:
+      if 0 <= asteroid.y_pos < 8:
+        grid[asteroid.y_pos][asteroid.x_pos] = "*"
+
+    # Place the player in the grid, overwriting any asteroid in the same lane
+    grid[7][player.x_pos] = "^"
+
+    # Display the grid with fixed-width lanes
+    print("\nCurrent Grid:")
+    for row in grid:
+        print("|", end="")
+        for cell in row:
+            print(f" {cell} |")  # Each lane is 3 characters wide (" |")
+        print("~" * 16)  # Add a border below each row
+
+    print(f"Player: {player.name}, Lives: {player.health}")
+
+
 
 
 def slow_print(*args):
