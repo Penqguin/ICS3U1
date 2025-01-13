@@ -1,101 +1,145 @@
-import time, random
-from prettytable import PrettyTable
+import time
+import random
 
-class spaceship():
-  def __init__(self, name = 'guest'):
+class Spaceship:
+  def __init__(self, name='guest'):
     self.health = 3
     self.name = name
-    self.x_pos = 2
-  
+    self.x_pos = 2  # Start in the middle lane
+    self.score = 0
+    self.streak = 0
+
   def collision(self):
     self.health -= 1
+    self.streak = 0
     return self.health
-  
+
   def gain_life(self):
-    self.health +=1
+    self.health += 1
     return self.health
-  
+
   def move_left(self):
-    self.x_pos -= 1
-    return self.x_pos
-  
-  def move_right(self):
-    self.x_pos += 1
+    if self.x_pos > 0:
+      self.x_pos -= 1
     return self.x_pos
 
-class asteroid():
+  def move_right(self):
+    if self.x_pos < 4:
+      self.x_pos += 1
+    return self.x_pos
+
+
+class Asteroid:
   def __init__(self, x_pos, y_pos):
-    self.health = 1
     self.x_pos = x_pos
     self.y_pos = y_pos
 
-  def collision(self):
-    self.health = 0
-    return self.health
+  def move_down(self):
+    self.y_pos += 1
+
 
 def check_collision(player, asteroids):
   for asteroid in asteroids:
-    if player.x_pos == asteroid.x_pos:
+    if player.x_pos == asteroid.x_pos and asteroid.y_pos == 7:
       player.collision()
-      asteroid.collision()
-      print(f"You've hit an asteroid! \nlives remaining {player.health}")
+      print(f"You've hit an asteroid! Lives remaining: {player.health}")
+      return True
+  return False
 
-def update_score():
 
-def save_high_score():
+def update_score(player, asteroids):
+  dodged_asteroids = [asteroid for asteroid in asteroids if asteroid.y_pos > 7]
+  if dodged_asteroids:
+    player.score += len(dodged_asteroids)
+    player.streak += len(dodged_asteroids)
+    if player.streak >= 10:
+      player.gain_life()
+      print(f"Bonus! Lives increased to {player.health}")
+      player.streak = 0
+
+
+def save_high_score(player):
+  try:
+    with open("high_scores.txt", "a") as file:
+      file.write(f"{player.name}: {player.score}\n")
+    print("Score saved to high scores!")
+  except Exception as e:
+    print(f"Error saving score: {e}")
+
 
 def dfs():
-  # generates new lines of asteroids and makes sure there is always an avalible path
-  # path might not always be accessable to player to make game harder
-  
-def start():
+  # Ensures there is at least one survivable path for the asteroids
   path = []
-  current_pos = 0
-  asteroids = []
-  while True:
-    path.append(current_pos)
-    next_pos = random.randint(0, 4)
-    while next_pos in path:
-      next_pos = random.randint(0, 4)
-    current_pos = next_pos
-    if current_pos == 0:  # Reached the starting position, so the path is complete
-      break
-    # Add an asteroid at the current position
-    asteroids.append(asteroid(current_pos, random.randint(0, 4)))
-  return asteroids
+  while len(path) < 8:  # Generate 8 rows
+    next_lane = random.randint(0, 4)
+    path.append(next_lane)
+  return path
+
 
 def display_lanes(player, asteroids):
-  # Update and display the current state of the lanes
-  print(f"Player: {player.name}, Health: {player.health}, Position: {player.x_pos}")
-  print("Lanes:")
-  for i in range(5):
-    if i == player.x_pos:
-      print("^", end="")
-    elif i in [asteroid.x_pos for asteroid in asteroids]:
-      print("*", end="")
-    else:
-      print("-", end="")
-    print(" ", end="")
-  print()
+  grid = [[" " for _ in range(5)] for _ in range(8)]
+  grid[7][player.x_pos] = "^"  # Player's position
+  for asteroid in asteroids:
+    if 0 <= asteroid.y_pos < 8:
+      grid[asteroid.y_pos][asteroid.x_pos] = "*"
 
-#slow print function
+  print("\nCurrent Grid:")
+  for row in grid:
+    print("|" + "".join(row) + "|")
+  print(f"Player: {player.name}, Score: {player.score}, Lives: {player.health}")
+
+
 def slow_print(*args):
-    text = ' '.join(map(str, args))
-    delay=0.03 #speed up or slow down
-    for char in text:
-       print(char, end='', flush=True)
-       time.sleep(delay)
-    print('')
+  text = ' '.join(map(str, args))
+  delay = 0.03  # Speed up or slow down
+  for char in text:
+    print(char, end='', flush=True)
+    time.sleep(delay)
+  print('')
+
 
 def main():
-  slow_print("\033[32mPress enter to start... \033[0m")
-  a = input('')
+  slow_print("\033[32mPress Enter to start... \033[0m")
+  input('')
+  player = Spaceship(input("Enter a username: "))
+  asteroids = []
+  survivable_path = dfs()
 
-  player = spaceship(input("Enter a username"))
-  asteroids = start()
-
-  while a == a:
+  turn = 0
+  while player.health > 0:
+    print("\n" + "-" * 30)
     display_lanes(player, asteroids)
-    check_collision(player, asteroids)
+
+    # Move asteroids down and remove off-grid ones
+    asteroids = [asteroid for asteroid in asteroids if asteroid.y_pos < 8]
+    for asteroid in asteroids:
+      asteroid.move_down()
+
+    # Generate new asteroids
+    if turn < len(survivable_path):
+      asteroids.append(Asteroid(survivable_path[turn], 0))
+    else:
+      asteroids.append(Asteroid(random.randint(0, 4), 0))
+
+    # Get player input
+    move = input("Move (a: left, d: right, s: stay): ").lower()
+    if move == "a":
+      player.move_left()
+    elif move == "d":
+      player.move_right()
+    elif move == "exit":
+      break
+
+    # Check for collisions and update score
+    collision_occurred = check_collision(player, asteroids)
+    if not collision_occurred:
+      update_score(player, asteroids)
+
+    turn += 1
+
+  print(f"\nGame Over! Final Score: {player.score}")
+  save_option = input("Would you like to save your score? (y/n): ").lower()
+  if save_option == "y":
+    save_high_score(player)
 
 main()
