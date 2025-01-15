@@ -1,46 +1,76 @@
+'''
+  Asteroids game in Python
+  By: Michael M
+
+  This is a simple text based game where the player controls a spaceship and avoids asteroids.
+  The player can move left, and right. If they collide with an asteroid, they lose a life.
+
+  Features:
+    * Simple text-based graphics
+    * Randomly generated asteroid paths (tried using dfs to always generate a safe path but doesn't always work)
+    * Scorekeeping and high score tracking
+    * Bonus lives for achieving high streaks
+
+  Requirements:
+    * Python 3 (idk what version)
+    * `prettytable` library for displaying the leaderboard
+    * `json` library for saving and loading high scores
+'''
+
+# Import necessary libraries
 import time
 import random
 import json
 from prettytable import PrettyTable
 
+# Define a class for the spaceship
 class Spaceship:
+  # Initialize the spaceship with a name, health, position, score, and streak
   def __init__(self, name = None):
-    self.health = 3
-    self.name = name if name else 'guest'
+    self.health = 3  # Initial health
+    self.name = name if name else 'guest'  # Default name is 'guest'
     self.x_pos = 2  # Start in the middle lane
-    self.score = 0
-    self.streak = 0
+    self.score = 0  # Initial score
+    self.streak = 0  # Initial streak
 
+  # Method to handle collision with an asteroid
   def collision(self):
+    # Reduce health by 1 and reset streak
     self.health -= 1
     self.streak = 0
     return self.health
 
+  # Method to gain a life
   def gain_life(self):
+    # Increase health by 1 if it's less than 3
     if self.health < 3:
       self.health += 1
     return self.health
 
+  # Method to move the spaceship left
   def move_left(self):
     if self.x_pos > 0:
       self.x_pos -= 1
     return self.x_pos
 
+  # Method to move the spaceship right
   def move_right(self):
     if self.x_pos < 4:
       self.x_pos += 1
     return self.x_pos
 
-
+# Define a class for an asteroid
 class Asteroid:
+  # Initialize the asteroid with a position
   def __init__(self, x_pos, y_pos):
     self.x_pos = x_pos
     self.y_pos = y_pos
 
+  # Method to move the asteroid down
   def move_down(self):
     self.y_pos += 1
 
-
+# Function to check if the spaceship has collided with an asteroid
 def check_collision(player, asteroids):
   for asteroid in asteroids:
     if player.x_pos == asteroid.x_pos and asteroid.y_pos == 7:
@@ -49,16 +79,18 @@ def check_collision(player, asteroids):
       return True
   return False
 
+# Function to update the score
 def update_score(player, asteroids):
   dodged_asteroids = [asteroid for asteroid in asteroids if asteroid.y_pos > 7]
   if dodged_asteroids:
     player.score += len(dodged_asteroids)
     player.streak += len(dodged_asteroids)
-    if player.streak >= 10:
+    if player.streak >= 20:
       player.gain_life()
       print(f"Bonus! Lives increased to {player.health}")
       player.streak = 0
 
+# Function to save high scores using JSON
 def save_high_score(player):
   try:
     with open("high_scores.json", "r+") as file:
@@ -74,6 +106,7 @@ def save_high_score(player):
   except Exception as e:
     print(f"Error saving score: {e}")
 
+# Function to display the leaderboard
 def display_leaderboard(player):
   print("\nLeaderboard:")
   try:
@@ -165,7 +198,8 @@ def display_lanes(player, asteroids):
         print(f"   ", end="")  # Add a space between lanes
     print("|")  # End of row
   print(f"Player: {player.name}, Score: {player.score}, Lives: {player.health}")
-    
+
+# Main menu
 def start_menu():
     table = PrettyTable()
     table.header = True
@@ -181,6 +215,7 @@ def start_menu():
     choice = input()
     return choice
 
+# Keybinds
 def show_keybinds():
   table = PrettyTable(align="c")
   table.header = True
@@ -192,6 +227,7 @@ def show_keybinds():
   table.add_row(["", ""])
   print(table)
 
+# Funtion to slowly print text
 def slow_print(*args):
   text = ' '.join(map(str, args))
   delay = 0.03  # Speed up or slow down
@@ -200,10 +236,13 @@ def slow_print(*args):
     time.sleep(delay)
   print('')
 
+# Main game loop
 def game_loop(player):
   asteroids = []
   survivable_path = asteroidGen()
   turn = 0
+
+  # Start menu
   while True:
     a = start_menu()
     
@@ -224,7 +263,8 @@ def game_loop(player):
     elif a == "4":
       slow_print("\033[32mGoodbye! \033[0m")
       return
-      
+  
+  # Game Start
   while player.health > 0:
     print("\n" + "-" * 30)
     display_lanes(player, asteroids)
@@ -272,9 +312,12 @@ def game_loop(player):
     input('')
     
   player.health = 3
-  
+  player.score = 0
+  player.x_pos = 2
+
   game_loop(player)
 
+# Calls the Game Loop and initializes the player
 def main():
   slow_print("\033[32mPress Enter to start... \033[0m")
   input('')
