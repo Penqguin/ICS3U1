@@ -94,15 +94,43 @@ def display_leaderboard(player):
     print(f"Error reading high scores: {e}")
 
 def asteroidGen():
-  # generates asteroids
-  path = []
-  for _ in range(8):  # Generate 8 rows
-    row_asteroids = []
-    for _ in range(random.randint(0, 5)):  # Randomly generate 0-5 asteroids per row
-      x_pos = random.randint(0, 4)  # Randomize the x-position of the asteroid
-      row_asteroids.append(x_pos)
-    path.append(row_asteroids)
-  return path
+  # Define the grid size
+  grid_size = 8
+
+  # Create an empty grid
+  grid = [[False for _ in range(5)] for _ in range(grid_size)]
+
+  # Choose a random starting point for the path
+  start_x = random.randint(0, 4)
+  start_y = 0
+  grid[start_y][start_x] = True
+
+  # Define the possible movements (up, down, left, right)
+  movements = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+  # Perform DFS to generate the path
+  def dfs(x, y):
+    if y >= grid_size - 1:
+      return
+    for dx, dy in movements:
+      new_x, new_y = x + dx, y + dy
+      if 0 <= new_x < 5 and 0 <= new_y < grid_size and not grid[new_y][new_x]:
+        grid[new_y][new_x] = True
+        dfs(new_x, new_y)
+
+  # Start the DFS from the starting point
+  dfs(start_x, start_y)
+
+  # Convert the grid to a list of asteroid positions
+  asteroid_positions = []
+  for y in range(grid_size):
+    row = []
+    for x in range(5):
+      if not grid[y][x]:
+        row.append(x)
+    asteroid_positions.append(row)
+
+  return asteroid_positions
 
 def display_lanes(player, asteroids):
   # Create an empty 8x5 grid
@@ -145,12 +173,24 @@ def start_menu():
     table.add_row([""])
     table.add_row([" 1. Start Game "])
     table.add_row([" 2. Leaderboard "])
-    table.add_row([" 3. Exit "])
+    table.add_row([" 3. Keybinds "])
+    table.add_row([" 4. Exit "])
     table.add_row([""])
     print(table)
     print("Enter your choice:")
     choice = input()
     return choice
+
+def show_keybinds():
+  table = PrettyTable(align="c")
+  table.header = True
+  table.field_names = ([" Action ", " Keybinds "])
+  table.add_row(["", ""])
+  table.add_row([" Move Left ", " a, left, l "])
+  table.add_row([" Move Right ", " d, right, r "])
+  table.add_row([" Exit ", " q, quit, e, exit "])
+  table.add_row(["", ""])
+  print(table)
 
 def slow_print(*args):
   text = ' '.join(map(str, args))
@@ -170,11 +210,18 @@ def game_loop(player):
     if a == "1":
       slow_print("\033[32mGame starting... \033[0m")
       break
+    
     elif a == "2":
       display_leaderboard(player)
       slow_print("\033[32mPress Enter to return to the menu... \033[0m")
       input('')
+          
     elif a == "3":
+      show_keybinds()
+      slow_print("\033[32mPress Enter to return to the menu... \033[0m")
+      input('')
+      
+    elif a == "4":
       slow_print("\033[32mGoodbye! \033[0m")
       return
       
@@ -197,9 +244,9 @@ def game_loop(player):
 
     # Get player input
     move = input("Move (a: left, d: right, s: stay) or exit to quit: ").lower()
-    if move == "a":
+    if move == "a" or move == "left" or move == "l":
       player.move_left()
-    elif move == "d":
+    elif move == "d" or move == "right" or move == "r":
       player.move_right()
     elif move == "exit" or move == "quit" or move == "q" or move == "e":
       break
@@ -221,7 +268,9 @@ def game_loop(player):
   l = input("").lower()
   if l == "y" or l == "yes":
     display_leaderboard(player)
-  
+    slow_print("\033[32mPress Enter to return to the menu... \033[0m")
+    input('')
+    
   player.health = 3
   
   game_loop(player)
