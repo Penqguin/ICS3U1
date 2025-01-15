@@ -1,10 +1,12 @@
 import time
 import random
+import json
+from prettytable import PrettyTable
 
 class Spaceship:
-  def __init__(self, name='guest'):
+  def __init__(self, name = None):
     self.health = 3
-    self.name = name
+    self.name = name if name else 'guest'
     self.x_pos = 2  # Start in the middle lane
     self.score = 0
     self.streak = 0
@@ -57,14 +59,39 @@ def update_score(player, asteroids):
       print(f"Bonus! Lives increased to {player.health}")
       player.streak = 0
 
-
 def save_high_score(player):
   try:
-    with open("high_scores.txt", "a") as file:
-      file.write(f"{player.name}: {player.score}\n")
+    with open("high_scores.json", "r+") as file:
+      try:
+        data = json.load(file)
+      except json.JSONDecodeError:
+        data = []
+      data.append({"name": player.name, "score": player.score})
+      file.seek(0)
+      json.dump(data, file)
+      file.truncate()
     print("Score saved to high scores!")
   except Exception as e:
     print(f"Error saving score: {e}")
+
+def display_leaderboard(player):
+  print("\nLeaderboard:")
+  try:
+    with open("high_scores.json", "r") as file:
+      data = json.load(file)
+      scores = sorted(data, key=lambda x: x["score"], reverse=True)
+      # Show top 5 scores
+      for i, score in enumerate(scores[:5], start=1):
+        print(f"{i}. {score['name']}: {score['score']}")
+      # Find the current player's score and show their position
+      current_player_score = next((score for score in scores if score["name"] == player.name), None)
+      if current_player_score:
+        current_player_position = scores.index(current_player_score) + 1
+        print(f"\nYou are currently ranked {current_player_position} with a score of {current_player_score['score']}")
+      else:
+        print("\nYou don't have a score yet.")
+  except Exception as e:
+    print(f"Error reading high scores: {e}")
 
 def asteroidGen():
   # generates asteroids
@@ -110,27 +137,20 @@ def display_lanes(player, asteroids):
         print(f"   ", end="")  # Add a space between lanes
     print("|")  # End of row
   print(f"Player: {player.name}, Score: {player.score}, Lives: {player.health}")
-
-def display_leaderboard():
-  print("\nLeaderboard:")
-  try:
-    with open("high_scores.txt", "r") as file:
-      scores = file.readlines()
-      # clean and sort scores
-      for score in scores:
-        scores = [score.strip().split(":")]
-      scores = [(name, int(points)) for name, points in scores if len(score) == 2 and points.isdigit()]
-      
-      # sort in descending order
-      scores.sort(key=lambda x: x[1], reverse=True)
-      
-      if scores:
-        for i, (name, points) in enumerate(scores, start=1):
-          print(f"{i}. {name}: {points}")
-      else:
-        print("Leaderboard is empty.")
-  except Exception as e:
-    print(f"Error reading high scores: {e}")
+    
+def start_menu():
+    table = PrettyTable()
+    table.header = True
+    table.field_names = ([" Asteroid Game "])
+    table.add_row([""])
+    table.add_row([" 1. Start Game "])
+    table.add_row([" 2. Leaderboard "])
+    table.add_row([" 3. Exit "])
+    table.add_row([""])
+    print(table)
+    print("Enter your choice:")
+    choice = input()
+    return choice
 
 def slow_print(*args):
   text = ' '.join(map(str, args))
@@ -140,14 +160,24 @@ def slow_print(*args):
     time.sleep(delay)
   print('')
 
-def main():
-  slow_print("\033[32mPress Enter to start... \033[0m")
-  input('')
-  player = Spaceship(input("Enter a username: "))
+def game_loop(player):
   asteroids = []
   survivable_path = asteroidGen()
-
   turn = 0
+  while True:
+    a = start_menu()
+    
+    if a == "1":
+      slow_print("\033[32mGame starting... \033[0m")
+      break
+    elif a == "2":
+      display_leaderboard(player)
+      slow_print("\033[32mPress Enter to return to the menu... \033[0m")
+      input('')
+    elif a == "3":
+      slow_print("\033[32mGoodbye! \033[0m")
+      return
+      
   while player.health > 0:
     print("\n" + "-" * 30)
     display_lanes(player, asteroids)
@@ -183,11 +213,24 @@ def main():
 
   slow_print(f"\n\033[31mGame Over!\033[0m Score: {player.score}")
   display_lanes(player, asteroids)
-  l = input("Would you like to view the leaderboard? (y/n): ").lower()
-  if l == "y" or l == "yes":
-    display_leaderboard()
-  save_option = input("Would you like to save your score? (y/n): ").lower()
+  slow_print("Would you like to save your score? (y/n): ")
+  save_option = input("").lower()
   if save_option == "y" or save_option == "yes":
     save_high_score(player)
+  slow_print("Would you like to view the leaderboard? (y/n): ")
+  l = input("").lower()
+  if l == "y" or l == "yes":
+    display_leaderboard(player)
+  
+  player.health = 3
+  
+  game_loop(player)
+
+def main():
+  slow_print("\033[32mPress Enter to start... \033[0m")
+  input('')
+  player = Spaceship(input("Enter a username: "))
+  
+  game_loop(player)
 
 main()
